@@ -55,33 +55,36 @@ jobs:
                     }" || echo "Release exists or error"
             done
 
-        - name: Check if images have been pushed successfully
-          env:
-            REGISTRY: ghcr.io/dolvladzio
-            IMAGES: "app-1 app-2 app-3"
-            TIMEOUT: 300
-            INTERVAL: 10
+        - name: Wait for all images to be available
           run: |
-            sleep 15  # Initial wait before checking
-            for image in "${IMAGES[@]}"; do
-              echo "Checking $REGISTRY/$image:$VERSION"
-              ELAPSED=0
-              while [ $ELAPSED -lt $TIMEOUT ]; do
-                if docker manifest inspect "$REGISTRY/$image:$VERSION" > /dev/null 2>&1; then
-                  echo "✅ Found $REGISTRY/$image:$VERSION"
+            VERSION="${{ steps.vars.outputs.VERSION }}"
+            REGISTRY="ghcr.io/dolvladzio"
+
+            echo "Checking app-1, app-2, app-3 version $VERSION"
+
+            for i in 1 2 3; do
+              IMAGE="$REGISTRY/app-$i:$VERSION"
+              echo "Waiting for $IMAGE ..."
+
+              # retry logic: 30 attempts x 5 sec = 150 sec max wait
+              for attempt in {1..30}; do
+                if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+                  echo "✅ Found $IMAGE"
                   break
                 fi
-                echo "Waiting for $REGISTRY/$image:$VERSION ..."
-                sleep $INTERVAL
-                ELAPSED=$((ELAPSED + INTERVAL))
+
+                echo "Not yet available, retry $attempt/30..."
+                sleep 5
               done
-              if [ $ELAPSED -ge $TIMEOUT ]; then
-                echo "❌ Timeout waiting for $REGISTRY/$image:$VERSION"
+
+              # if not found after retries → fail
+              if ! docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+                echo "❌ $IMAGE NOT found after waiting"
                 exit 1
               fi
             done
 
-            echo "✅All images exist!"
+            echo "✅ All images are available!"
 
     deploy-release:
       needs: create-release-tag
