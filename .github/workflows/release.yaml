@@ -17,6 +17,11 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v4
 
+        - name: Login to registry
+          run: |
+            echo "${{ secrets.PAT }}" | \
+              docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
         - name: Create tags and releases in repos
           env:
             ORG: dolvladzio
