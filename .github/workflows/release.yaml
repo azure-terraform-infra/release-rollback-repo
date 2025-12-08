@@ -9,6 +9,9 @@ on:
 
 env:
   VERSION: ${{ github.event.inputs.version }}
+  REGISTRY: "ghcr.io/dolvladzio"
+  REPOS: "app-1 app-2 app-3"
+  PAT: ${{ secrets.PAT }}
 
 jobs:
     create-release-tag:
@@ -25,25 +28,23 @@ jobs:
         - name: Create tags and releases in repos
           env:
             ORG: dolvladzio
-            REPOS: "app-1 app-2 app-3"
-            PAT: ${{ secrets.PAT }}
           run: |
-            for repo in $REPOS; do
-              echo "Processing $repo with version $VERSION"
+            for repo in ${REPOS}; do
+              echo "Processing $repo with version ${VERSION}"
 
               # 1️⃣ Find default branch sha
-              BRANCH=$(curl -s -H "Authorization: token $PAT" \
+              BRANCH=$(curl -s -H "Authorization: token ${PAT}" \
                 "https://api.github.com/repos/$ORG/$repo" | jq -r .default_branch)
-              SHA=$(curl -s -H "Authorization: token $PAT" \
+              SHA=$(curl -s -H "Authorization: token ${PAT}" \
                 "https://api.github.com/repos/$ORG/$repo/git/refs/heads/$BRANCH" | jq -r .object.sha)
 
               # 2️⃣ Create tag (ignore if exists)
-              curl -sS -X POST -H "Authorization: token $PAT" \
+              curl -sS -X POST -H "Authorization: token ${PAT}" \
                 -d "{\"ref\":\"refs/tags/${VERSION}\",\"sha\":\"${SHA}\"}" \
                 "https://api.github.com/repos/$ORG/$repo/git/refs" || echo "Tag exists or error"
 
               # 3️⃣ Create release (ignore if exists)
-              curl -sS -X POST -H "Authorization: token $PAT" \
+              curl -sS -X POST -H "Authorization: token ${PAT}" \
                 -H "Accept: application/vnd.github+json" \
                 "https://api.github.com/repos/$ORG/$repo/releases" \
                 -d "{
@@ -58,12 +59,10 @@ jobs:
         - name: Wait for all images to be available
           run: |
             sleep 30  # initial wait before checking
-            REGISTRY="ghcr.io/dolvladzio"
-
             echo "⏳Checking images"
 
-            for i in {1..3}; do
-              IMAGE="$REGISTRY/app-$i:${VERSION}"
+            for i in ${REPOS}; do
+              IMAGE="${REGISTRY}/app-$i:${VERSION}"
               echo "Waiting for $IMAGE ..."
 
               # retry logic: 30 attempts x 5 sec = 150 sec max wait
