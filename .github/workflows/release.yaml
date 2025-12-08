@@ -23,33 +23,33 @@ jobs:
 
         - name: Login to registry
           run: |
-            echo "${{ secrets.PAT }}" | \
+            echo "${{ env.PAT }}" | \
               docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
         - name: Create tags and releases in repos
           run: |
-            for repo in ${REPOS}; do
-              echo "Processing $repo with version ${VERSION}"
+            for repo in ${{ env.REPOS}}; do
+              echo "Processing $repo with version ${{ env.VERSION }}"
 
               # 1️⃣ Find default branch sha
-              BRANCH=$(curl -s -H "Authorization: token ${PAT}" \
-                "https://api.github.com/repos/${ORG}/$repo" | jq -r .default_branch)
-              SHA=$(curl -s -H "Authorization: token ${PAT}" \
-                "https://api.github.com/repos/${ORG}/$repo/git/refs/heads/$BRANCH" | jq -r .object.sha)
+              BRANCH=$(curl -s -H "Authorization: token ${{ env.PAT }}" \
+                "https://api.github.com/repos/${{ env.ORG }}/$repo" | jq -r .default_branch)
+              SHA=$(curl -s -H "Authorization: token ${{ env.PAT }}" \
+                "https://api.github.com/repos/${{ env.ORG }}/$repo/git/refs/heads/$BRANCH" | jq -r .object.sha)
 
               # 2️⃣ Create tag (ignore if exists)
-              curl -sS -X POST -H "Authorization: token ${PAT}" \
-                -d "{\"ref\":\"refs/tags/${VERSION}\",\"sha\":\"${SHA}\"}" \
-                "https://api.github.com/repos/${ORG}/$repo/git/refs" || echo "Tag exists or error"
+              curl -sS -X POST -H "Authorization: token ${{ env.PAT }}" \
+                -d "{\"ref\":\"refs/tags/${{ env.VERSION }}\",\"sha\":\"${SHA}\"}" \
+                "https://api.github.com/repos/${{ env.ORG }}/$repo/git/refs" || echo "Tag exists or error"
 
               # 3️⃣ Create release (ignore if exists)
-              curl -sS -X POST -H "Authorization: token ${PAT}" \
+              curl -sS -X POST -H "Authorization: token ${{ env.PAT }}" \
                 -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/${ORG}/$repo/releases" \
+                "https://api.github.com/repos/${{ env.ORG }}/$repo/releases" \
                 -d "{
-                      \"tag_name\": \"${VERSION}\",
-                      \"name\": \"Release ${VERSION}\",
-                      \"body\": \"Automated release for version ${VERSION}\",
+                      \"tag_name\": \"${{ env.VERSION }}\",
+                      \"name\": \"Release ${{ env.VERSION }}\",
+                      \"body\": \"Automated release for version ${{ env.VERSION }}\",
                       \"draft\": false,
                       \"prerelease\": false
                     }" || echo "Release exists or error"
@@ -60,8 +60,8 @@ jobs:
             sleep 30  # initial wait before checking
             echo "⏳Checking images"
 
-            for i in ${REPOS}; do
-              IMAGE="${REGISTRY}/$i:${VERSION}"
+            for i in ${{ env.REPOS}}; do
+              IMAGE="${{ env.REGISTRY }}/$i:${{ env.VERSION }}"
               echo "Waiting for $IMAGE ..."
 
               # retry logic: 30 attempts x 5 sec = 150 sec max wait
