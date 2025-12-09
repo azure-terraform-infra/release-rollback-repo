@@ -129,61 +129,17 @@ jobs:
       name: Deploy Release
       runs-on: ubuntu-latest
       steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
-
-        - name: Helm install
-          uses: azure/setup-helm@v3
+        - name: Trigger the Ansible runner
+          uses: peter-evans/repository-dispatch@v3
           with:
-            version: v3.11.2
-
-        - name: Configure kubectl
-          uses: azure/setup-kubectl@v3
-          with:
-            version: 'latest'
-
-        - name: Helm diff plugin
-          run: |
-            helm plugin install https://github.com/databus23/helm-diff
-
-        - name: Configure Kubeconfig
-          run: |
-            
-
-        - name: Helm diff check
-          run: |
-            for i in ${{ env.REPOS}}; do
-              echo "Checking helm diff for $i"
-
-              if helm diff upgrade app-$i ./charts-repo/app-$i \
-                --namespace ${{ env.ENVIRONMENT }} \
-                --set image.repository=${{ env.REGISTRY }}/$i \
-                --set image.tag=${{ env.VERSION }} \
-                charts/$i; then
-                echo "✅ No changes detected for $i"
-              else
-                echo "❌ Changes detected for $i, aborting deployment"
-                exit 1
-              fi
-            done
-
-        - name: Deploy the ${{ env.VERSION }} version
-          run: |
-            for i in ${{ env.REPOS}}; do
-              echo "Deploying $i version ${{ env.VERSION }} to ${{ env.ENVIRONMENT }}"
-
-                if helm upgrade --install app-$i ./charts-repo/app-$i \
-                  --namespace ${{ env.ENVIRONMENT }} \
-                  --set image.repository=${{ env.REGISTRY }}/$i \
-                  --set image.tag=${{ env.VERSION }} \
-                  charts/$i \
-                  --wait --timeout 10m; then
-                  echo "✅ Deployed $i successfully"
-                else
-                  echo "❌ Deployment of $i failed"
-                  exit 1
-                fi
-            done
+            token: ${{ secrets.ACCESS_REPO_TOKEN }}
+            repository: ${{ github.actor }}/app-charts
+            event-type: charts-deployment-trigger
+            client-payload: |
+              {
+                "environment": "${{ env.ENVIRONMENT }}",
+                "version": "${{ env.VERSION }}"
+              }
 
     rollback-release:
       if: ${{ inputs.rollback }}
@@ -210,7 +166,6 @@ jobs:
 
                 if helm upgrade --install app-$i ./charts-repo/app-$i \
                   --namespace ${{ env.ENVIRONMENT }} \
-                  --set image.repository=${{ env.REGISTRY }}/$i \
                   --set image.tag=${{ env.VERSION }} \
                   charts/$i ; then
                   echo "✅ Rolled back $i successfully"
