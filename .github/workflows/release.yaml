@@ -149,7 +149,7 @@ jobs:
             GH_TOKEN: ${{ secrets.PAT }}
           run: |
             echo "Waiting for Charts CI/CD Pipeline workflow to start..."
-            sleep 15
+            sleep 60
             
             TIMEOUT=1800
             ELAPSED=0
