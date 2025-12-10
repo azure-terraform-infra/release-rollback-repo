@@ -39,7 +39,7 @@ on:
 env:
   VERSION: ${{ github.event.inputs.version }}
   REGISTRY: "containerregistry5th7aytwop.azurecr.io" # without environment prefix in order to support both dev/prod
-  ORG: "dolvladzio"
+  ORG: "azure-terraform-infra"
   REPOS: "app-1 app-2 app-3"
   PAT: ${{ secrets.PAT }}
   ENVIRONMENT: ${{ inputs.environment }}
@@ -133,7 +133,7 @@ jobs:
           uses: peter-evans/repository-dispatch@v3
           with:
             token: ${{ secrets.PAT }}
-            repository: ${{ github.actor }}/app-charts
+            repository: ${{ env.ORG }}/app-charts
             event-type: charts-deployment-trigger
             client-payload: |
               {
@@ -156,7 +156,7 @@ jobs:
             while [ $ELAPSED -lt $TIMEOUT ]; do
               # Get recent workflow runs
               RUNS=$(gh run list \
-                --repo ${{ github.actor }}/app-charts \
+                --repo ${{ env.ORG }}/app-charts \
                 --workflow "Charts CI/CD Pipeline" \
                 --limit 5 \
                 --json status,conclusion,createdAt,databaseId)
@@ -208,7 +208,7 @@ jobs:
           uses: peter-evans/repository-dispatch@v3
           with:
             token: ${{ secrets.PAT }}
-            repository: ${{ github.actor }}/app-charts
+            repository: ${{ env.ORG }}/app-charts
             event-type: charts-deployment-trigger
             client-payload: |
               {
@@ -231,7 +231,7 @@ jobs:
             while [ $ELAPSED -lt $TIMEOUT ]; do
               # Get recent workflow runs
               RUNS=$(gh run list \
-                --repo ${{ github.actor }}/app-charts \
+                --repo ${{ env.ORG }}/app-charts \
                 --workflow "Charts CI/CD Pipeline" \
                 --limit 5 \
                 --json status,conclusion,createdAt,databaseId)
