@@ -4,7 +4,7 @@
     - build-images
         - ~~triggers each repo creating a new tag/release with tag's version~~
         - ~~azure registries(prod/dev)~~
-        - stage branch → build image:date-time
+        - ~~stage branch → build image:date-time~~
         - ~~Hot Fix → image:hot-fix-date~~
         - ~~show tag on website~~
         - ~~each repo is triggered~~
@@ -34,6 +34,7 @@
     - deploy
         - ~~separate repo with charts and values.yaml~~
         - ~~helm diff to see changes~~
+        - dev or stage build/deploy
         - workflow is triggered based on branch name(hot-fix) to build/deploy a single svc
         - ~~Deploy with Helm passing: `--set image.tag=v0.0.1`~~
         - maintance mod off
