@@ -14,7 +14,7 @@ on:
         description: 'Environment to deploy to'
         required: false
         type: string
-        default: 'prod'
+        default: 'dev' # default prod
   workflow_dispatch:
 
 env:
