@@ -5,7 +5,7 @@ on:
       environment:
         description: 'Environment to deploy to'
         required: true
-        default: 'dev'
+        default: 'prod'
         type: choice
         options:
           - dev
@@ -24,7 +24,7 @@ on:
       maintenance:
           description: "Enable maintenance mode during deployment"
           type: boolean
-          default: true
+          default: false
       
       deploy-release:
           description: "Deploy the release after tagging"
@@ -38,7 +38,7 @@ on:
 
 env:
   VERSION: ${{ github.event.inputs.version }}
-  REGISTRY: "ghcr.io/dolvladzio"
+  REGISTRY: "containerregistry5th7aytwop.azurecr.io" # without environment prefix in order to support both dev/prod
   ORG: "dolvladzio"
   REPOS: "app-1 app-2 app-3"
   PAT: ${{ secrets.PAT }}
@@ -88,11 +88,11 @@ jobs:
 
         - name: Wait for all images to be available
           run: |
-            sleep 30  # initial wait before checking
+            sleep 60  # initial wait before checking
             echo "⏳Checking images"
 
             for i in ${{ env.REPOS}}; do
-              IMAGE="${{ env.REGISTRY }}/$i:${{ env.VERSION }}"
+              IMAGE="${{ env.ENVIRONMENT }}${{ env.REGISTRY }}/$i:${{ env.VERSION }}"
               echo "Waiting for $IMAGE ..."
 
               # retry logic: 30 attempts x 5 sec = 150 sec max wait
