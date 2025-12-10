@@ -4,7 +4,7 @@ on:
     inputs:
       version:
         description: 'Version tag to build'
-        required: true
+        required: false
         type: string
       app-name:
         description: 'Application name'
