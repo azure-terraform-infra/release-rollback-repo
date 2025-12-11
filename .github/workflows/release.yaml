@@ -91,7 +91,7 @@ jobs:
 
         - name: Wait for all images to be available
           run: |
-            sleep 60  # initial wait before checking
+            sleep 90  # initial wait before checking
             echo "⏳Checking images"
 
             for i in ${{ env.REPOS}}; do
