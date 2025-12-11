@@ -38,8 +38,8 @@ on:
 
 env:
   VERSION: ${{ github.event.inputs.version }}
-  REGISTRY: "containerregistry5th7aytwop.azurecr.io" # without environment prefix in order to support both dev/prod
-  ORG: "azure-terraform-infra"
+  REGISTRY: "${{ inputs.environment }}containerregistry5th7aytwop.azurecr.io"
+  ORG: ${{ github.repository_owner }}
   REPOS: "app-1 app-2 app-3"
   PAT: ${{ secrets.PAT }}
   ENVIRONMENT: ${{ inputs.environment }}
@@ -58,7 +58,7 @@ jobs:
               creds: ${{ secrets.AZURE_CREDENTIALS }}
 
         - name: Log in to Azure Container Registry
-          run: az acr login --name ${{ env.ENVIRONMENT }}${{ env.REGISTRY }}
+          run: az acr login --name ${{ env.REGISTRY }}
 
         - name: Create tags and releases in repos
           run: |
@@ -95,7 +95,7 @@ jobs:
             echo "⏳Checking images"
 
             for i in ${{ env.REPOS}}; do
-              IMAGE="${{ env.ENVIRONMENT }}${{ env.REGISTRY }}/$i:${{ env.VERSION }}"
+              IMAGE="${{ env.REGISTRY }}/$i:${{ env.VERSION }}"
               echo "Waiting for $IMAGE ..."
 
               # retry logic: 30 attempts x 5 sec = 150 sec max wait
@@ -105,7 +105,7 @@ jobs:
                   break
                 fi
 
-                echo "Not yet available, retry $attempt/30..."
+                echo "⏳Not yet available, retry $attempt/30..."
                 sleep 5
               done
 
@@ -148,7 +148,7 @@ jobs:
           env:
             GH_TOKEN: ${{ secrets.PAT }}
           run: |
-            echo "Waiting for Charts CI/CD Pipeline workflow to start..."
+            echo "⏳Waiting for Charts CI/CD Pipeline workflow to start..."
             sleep 60
             
             TIMEOUT=1800
@@ -223,7 +223,7 @@ jobs:
           env:
             GH_TOKEN: ${{ secrets.PAT }}
           run: |
-            echo "Waiting for Charts CI/CD Pipeline workflow to start..."
+            echo "⏳ Waiting for Charts CI/CD Pipeline workflow to start..."
             sleep 15
             
             TIMEOUT=1800

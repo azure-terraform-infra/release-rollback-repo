@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: "containerregistry5th7aytwop.azurecr.io" # without "prod" or "dev" prefix in order to support both dev/prod
+  REGISTRY: "${{ inputs.environment }}containerregistry5th7aytwop.azurecr.io"
   APP_NAME: ${{ inputs.app-name }}
   VERSION: ${{ inputs.version }}
   ENVIRONMENT: ${{ inputs.environment }}
@@ -41,7 +41,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       
       - name: Log in to Azure Container Registry
-        run: az acr login --name ${{ env.ENVIRONMENT }}${{ env.REGISTRY }}
+        run: az acr login --name ${{ env.REGISTRY }}
 
       - name: Build and push image
         uses: docker/build-push-action@v5
@@ -51,8 +51,8 @@ jobs:
           push: true
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: "${{ env.ENVIRONMENT }}${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.VERSION }}"
+          tags: "${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.VERSION }}"
 
       - name: Check pushed image
         run: |
-          docker manifest inspect ${{ env.ENVIRONMENT }}${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.VERSION }}
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.VERSION }}
