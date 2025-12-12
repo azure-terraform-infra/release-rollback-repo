@@ -33,10 +33,13 @@
 
     - deploy
         - ~~separate repo with charts and values.yaml~~
+        - ~~one chart for all svc~~
+        - ~~values in each svc~~
         - ~~helm diff to see changes~~
-        - dev or stage build/deploy
+        - ~~dev or stage build/deploy~~
         - ~~workflow is triggered based on branch name(hot-fix) to build/deploy a single svc~~
         - ~~Deploy with Helm passing: `--set image.tag=v0.0.1`~~
         - maintance mod off
 
     - roll back(optional; manually)
+        - ~~manual job~~

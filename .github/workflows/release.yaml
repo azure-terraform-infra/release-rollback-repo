@@ -40,7 +40,7 @@ env:
   VERSION: ${{ github.event.inputs.version }}
   REGISTRY: "${{ inputs.environment }}containerregistry5th7aytwop.azurecr.io"
   ORG: ${{ github.repository_owner }}
-  REPOS: "app-1 app-2 app-3"
+  REPOS: ${{ vars.REPOS }}
   PAT: ${{ secrets.PAT }}
   ENVIRONMENT: ${{ inputs.environment }}
 
